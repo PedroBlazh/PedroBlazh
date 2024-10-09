@@ -1,377 +1,540 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/SindubsMini/doors-script/main/Doors/source%20(OrionLib)')))()
+local Window = OrionLib:MakeWindow({Name = "Doors Script", HidePremium = false, SaveConfig = true, ConfigFolder = "Doors Summon"})
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
-   Name = "DashRedHub",
-   LoadingTitle = "Made by DashRedHub on scriptblox",
-   LoadingSubtitle = "by dashHub",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = MurderMysteryFre, -- Create a custom folder for your hub/game
-      FileName = "FreScriptsScriptblox"
-   }
+
+local itemsTab = Window:MakeTab({
+    Name = "Items",
+    Icon = "rbxassetid://7734068321",
+    PremiumOnly = false
 })
 
-local Tab = Window:CreateTab("Trading Stuff", 4483362458) -- Title, Image
-local Section = Tab:CreateSection("Trade op")
+itemsTab:AddParagraph("Warning!","Only works on entites spawned by script!")
 
-local TextBox = Tab:CreateInput({
-    Name = "Player Name",
-    PlaceholderText = "Enter player name...",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(Text)
-        -- The function that takes place when the input is changed
-        playerNameTextbox = Text
-    end,
-})
-
-local Button = Tab:CreateButton({
-    Name = "Force Trade",
-    Callback = function()
-        if playerNameTextbox and playerNameTextbox ~= "" then
-            local player = game.Players:FindFirstChild(playerNameTextbox)
-
-            if player then
-                local args = {
-                    [1] = player
-                }
-
-                game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("SendRequest"):InvokeServer(unpack(args))
-
-                game:GetService("ReplicatedStorage"):WaitForChild("Trade"):WaitForChild("AcceptRequest"):FireServer()
-
-                Rayfield:Notify({
-                    Title = "Trade System",
-                    Content = "Force Traded Player: " .. playerNameTextbox,
-                    Duration = 5,
-                    Image = 4483362458,
-                    Actions = {
-                        Ignore = {
-                            Name = "Okay!",
-                            Callback = function()
-                            end
-                        },
-                    },
-                })
-            else
-                Rayfield:Notify({
-                    Title = "Trade System",
-                    Content = "Player not found.",
-                    Duration = 5,
-                    Image = 4483362458,
-                    Actions = {
-                        Ignore = {
-                            Name = "Okay!",
-                            Callback = function()
-                            end
-                        },
-                    },
-                })
-            end
-        else
-            Rayfield:Notify({
-                Title = "Trade System",
-                Content = "Please enter a valid player name.",
-                Duration = 5,
-                Image = 4483362458,
-                Actions = {
-                    Ignore = {
-                        Name = "Okay!",
-                        Callback = function()
-                        end
-                    },
-                },
-            })
-        end
-    end,
-})
-
-local Section = Tab:CreateSection("role op")
-
-local Button = Tab:CreateButton({
-   Name = "Chat Expose Roles",
-   Callback = function()
-   local allPlayers = game.Players:GetPlayers()
-
-for _, player in pairs(allPlayers) do
-    local backpack = player:FindFirstChild("Backpack")
-    
-    if backpack then
-        if backpack:FindFirstChild("Knife") then
-            local args = {
-                [1] = player.Name .. ": Has The Knife",
-                [2] = "normalchat"
-            }
-
-            game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(unpack(args))
-        end
-        
-        if backpack:FindFirstChild("Gun") then
-            local args = {
-                [1] = player.Name .. ": Has The Gun",
-                [2] = "normalchat"
-            }
-
-            game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(unpack(args))
-        end
-    end
-end
-   end,
-})
-
-local Label = Tab:CreateLabel("Gun Not Dropped") -- Use "Label" instead of "GunLabel"
-coroutine.wrap(function()
-    local gunDropped = false
-    while wait(1) do
-        local gunExists = Workspace:FindFirstChild("GunDrop")
-        
-        if gunExists then
-            Label:Set("Gun Dropped") -- Update to use "Label" instead of "GunLabel"
-            
-            -- Only send notification if the gun has been dropped since last check
-            if not gunDropped then
-                gunDropped = true
-                Rayfield:Notify({
-                    Title = "Gun Status",
-                    Content = "Gun Dropped",
-                    Duration = 6.5,
-                    Image = 5578470911,
-                    Actions = {
-                        Ignore = {
-                            Name = "Okay!",
-                            Callback = function()
-                                print("The user tapped Okay!")
-                            end
-                        },
-                    },
-                })
-            end
-        else
-            Label:Set("Gun Not Dropped") -- Update to use "Label" instead of "GunLabel"
-            gunDropped = false
-        end
-    end
-end)()
-
-local MurdererLabel = Tab:CreateLabel("Murderer is: Unknown")
-local SheriffLabel = Tab:CreateLabel("Sheriff is: Unknown")
-
--- Function to check and update the roles based on tools in players' backpacks
-local function updateRolesInfo()
-    while true do
-        local players = game:GetService("Players"):GetPlayers()
-        local murderer, sheriff = "Unknown", "Unknown"
-
-        for _, player in ipairs(players) do
-            if player.Character then
-                local backpack = player.Backpack
-                if backpack then
-                    for _, tool in ipairs(backpack:GetChildren()) do
-                        if tool:IsA("Tool") then
-                            if tool.Name == "Knife" then
-                                murderer = player.Name
-                            elseif tool.Name == "Gun" then
-                                sheriff = player.Name
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        MurdererLabel:Set("Murderer is: " .. murderer)
-        SheriffLabel:Set("Sheriff is: " .. sheriff)
-
-        wait(1)
-    end
-end
-
--- Start updating the Murderer and Sheriff information
-coroutine.wrap(updateRolesInfo)()
-
-local ESPFolder = Instance.new("Folder")
-ESPFolder.Name = "ESP Holder"
-ESPFolder.Parent = game.CoreGui
-
-local function AddBillboard(player)
-    local Billboard = Instance.new("BillboardGui")
-    Billboard.Name = player.Name .. "Billboard"
-    Billboard.AlwaysOnTop = true
-    Billboard.Size = UDim2.new(0, 200, 0, 50)
-    Billboard.ExtentsOffset = Vector3.new(0, 3, 0)
-    Billboard.Enabled = false
-    Billboard.Parent = ESPFolder
-
-    local TextLabel = Instance.new("TextLabel")
-    TextLabel.TextSize = 20
-    TextLabel.Text = player.Name
-    TextLabel.Font = Enum.Font.FredokaOne
-    TextLabel.BackgroundTransparency = 1
-    TextLabel.Size = UDim2.new(1, 0, 1, 0)
-    TextLabel.TextStrokeTransparency = 0
-    TextLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-    TextLabel.Parent = Billboard
-
-    repeat
-        wait()
-        pcall(function()
-            Billboard.Adornee = player.Character.Head
-            if player.Character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("Knife") then
-                TextLabel.TextColor3 = Color3.new(1, 0, 0)
-                if getgenv().MurderEsp then
-                    Billboard.Enabled = true
-                end
-            elseif player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun") then
-                TextLabel.TextColor3 = Color3.new(0, 0, 1)
-                if getgenv().SheriffEsp then
-                    Billboard.Enabled = true
-                end
-            else
-                TextLabel.TextColor3 = Color3.new(0, 1, 0)
-                if getgenv().AllEsp then
-                    Billboard.Enabled = true
-                end
+itemsTab:AddButton({
+    Name = "Give Crucifix",
+    Callback = function ()
+--[[        local shadow=game:GetObjects("rbxassetid://11480603603")[1]
+        shadow.Parent = game.Players.LocalPlayer.Backpack
+        local anim = Instance.new("Animation")
+        anim.AnimationId = 'https://www.roblox.com/Assest?ID=9982615727'
+        local track
+         
+        shadow.Equipped:Connect(function()
+            track = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(anim) 
+                track.Priority = Enum.AnimationPriority.Action
+                track:Play()
+                track.Looped = true
+         
+        end)
+         
+        shadow.Unequipped:Connect(function()
+            if track then
+                track:Stop()
             end
         end)
-    until not player.Parent
-end
-
-for _, player in pairs(game.Players:GetPlayers()) do
-    if player ~= game.Players.LocalPlayer then
-        coroutine.wrap(AddBillboard)(player)
-    end
-end
-
-game.Players.PlayerAdded:Connect(function(player)
-    if player ~= game.Players.LocalPlayer then
-        coroutine.wrap(AddBillboard)(player)
-    end
-end)
-
-game.Players.PlayerRemoving:Connect(function(player)
-    local billboard = ESPFolder:FindFirstChild(player.Name .. "Billboard")
-    if billboard then
-        billboard:Destroy()
-    end
-end)
-
-local ToggleAllESP = Tab:CreateToggle({
-    Name = "Every Player ESP",
-    CurrentValue = false,
-    Flag = "AllESP",
-    Callback = function(state)
-        getgenv().AllEsp = state
-        for _, billboard in ipairs(ESPFolder:GetChildren()) do
-            if billboard:IsA("BillboardGui") then
-                local playerName = billboard.Name:sub(1, -10)
-                local player = game.Players:FindFirstChild(playerName)
-                if player and player.Character then
-                    local hasKnife = player.Character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("Knife")
-                    local hasGun = player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")
-                    if not (hasKnife or hasGun) then
-                        billboard.Enabled = state
-                    end
-                end
-            end
+            end,
+]]
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Johnny39871/assets/main/crucifixo"))()
         end
-    end,
 })
 
-
-
-local ToggleMurderESP = Tab:CreateToggle({
-    Name = "Murder ESP",
-    CurrentValue = false,
-    Flag = "MurderESP",
-    Callback = function(state)
-        getgenv().MurderEsp = state
-        for _, billboard in ipairs(ESPFolder:GetChildren()) do
-            if billboard:IsA("BillboardGui") then
-                local playerName = billboard.Name:sub(1, -10)
-                local player = game.Players:FindFirstChild(playerName)
-                if player and (player.Character:FindFirstChild("Knife") or player.Backpack:FindFirstChild("Knife")) then
-                    billboard.Enabled = state
-                end
-            end
-        end
-    end,
-})
-
-local ToggleSheriffESP = Tab:CreateToggle({
-    Name = "Sherif ESP",
-    CurrentValue = false,
-    Flag = "SheriffESP",
-    Callback = function(state)
-        getgenv().SheriffEsp = state
-        for _, billboard in ipairs(ESPFolder:GetChildren()) do
-            if billboard:IsA("BillboardGui") then
-                local playerName = billboard.Name:sub(1, -10)
-                local player = game.Players:FindFirstChild(playerName)
-                if player and (player.Character:FindFirstChild("Gun") or player.Backpack:FindFirstChild("Gun")) then
-                    billboard.Enabled = state
-                end
-            end
-        end
-    end,
-})
-
-local Tab = Window:CreateTab("Misc", 4483362458)
-local Section = Tab:CreateSection("other very op stuff")
-
-local Button = Tab:CreateButton({
-    Name = "Get Every Emote",
-    Callback = function()
-        local PlayerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-        local Emotes = PlayerGui:WaitForChild("MainGUI"):WaitForChild("Game"):FindFirstChild("Emotes")
-
-        if Emotes then
-            require(game:GetService("ReplicatedStorage").Modules.EmoteModule).GeneratePage({"headless", "zombie", "zen", "ninja", "floss", "dab", "sit"}, Emotes, "Free Emotes")
-
-            Rayfield:Notify({
-                Title = "Emotes",
-                Content = "Succesfly added emotes!",
-                Duration = 6.5,
-                Image = 4483362458,
-                Actions = { -- Notification Buttons
-                    Ignore = {
-                        Name = "Okay!",
-                        Callback = function()
-                        end
-                    },
-                },
-            })
-        end
-    end,
-})
-
-local Button = Tab:CreateButton({
-    Name = "Get Every Gun/Knife!",
-    Callback = function()
-        local WeaponOwnRange = {
-            min = 999999999,
-            max = 999999999
-        }
-
-        local DataBase, PlayerData = getrenv()._G.Database, getrenv()._G.PlayerData
-
-        local newOwned = {}
-
-        for i, v in next, DataBase.Item do
-            newOwned[i] = math.random(WeaponOwnRange.min, WeaponOwnRange.max) -- newOwned[Weapon]: ItemCount
-        end
-
-        local PlayerWeapons = PlayerData.Weapons
-
-        game:GetService("RunService"):BindToRenderStep("InventoryUpdate", 0, function()
-            PlayerWeapons.Owned = newOwned
-        end)
-
-        game.Players.LocalPlayer.Character.Humanoid.Health = 0
-
-        ReyField:Notify({
-            Title = "Weapon Update",
-            Content = "Got every weapon/gun (Client)",
-            Duration = 3
+itemsTab:AddButton({
+    Name = "Give Skeleton Key",
+    Info = "Opens All Doors",
+    Callback = function ()
+        function skelly()
+            local DoorReplication = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Door%20Replication/Source.lua"))()
+        
+        
+        -- Get current room
+        local room = workspace.CurrentRooms[game:GetService("ReplicatedStorage").GameData.LatestRoom.Value]
+        
+        
+        -- Replicate door
+        local replicatedDoor = DoorReplication.ReplicateDoor(room, {
+            CustomKeyName = "Skeleton Key",
+            DestroyKey = false,
         })
-    end,
+        
+        
+        -- Debug features [advanced]
+        replicatedDoor.Debug.OnDoorOpened = function(doorTable)
+            warn("Door", doorTable.Model, "has opened")
+        end
+        end
+        local DoorReplication = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors/Door%20Replication/Source.lua"))()
+        
+        
+        -- Get current room
+        local room = workspace.CurrentRooms[game:GetService("ReplicatedStorage").GameData.LatestRoom.Value]
+        
+        
+        -- Replicate door
+        local replicatedDoor = DoorReplication.ReplicateDoor(room, {
+            CustomKeyName = "Skeleton Key",
+            DestroyKey = false,
+        })
+        
+        
+        -- Debug features [advanced]
+        replicatedDoor.Debug.OnDoorOpened = function(doorTable)
+            warn("Door", doorTable.Model, "has opened")
+        end
+                local shadow=game:GetObjects("rbxassetid://11491147151")[1]
+        shadow.Parent = game.Players.LocalPlayer.Backpack
+        local anim = Instance.new("Animation")
+        local anim2 = Instance.new("Animation")
+        anim.AnimationId = 'https://www.roblox.com/Assest?ID=6525854363'
+        anim2.AnimationId = 'https://www.roblox.com/Assest?ID=10526835827'
+        local track
+         
+        shadow.Equipped:Connect(function()
+            track = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(anim) 
+                track.Priority = Enum.AnimationPriority.Action
+                track:Play()
+                track.Looped = false
+                wait(1.4)
+            track2 = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(anim2) 
+                track2.Priority = Enum.AnimationPriority.Action
+                track2:Play()
+                track2.Looped = false
+         
+        end)
+         
+        shadow.Unequipped:Connect(function()
+            if track then
+                track:Stop()
+                track2:Stop()
+            end
+        end)
+        game.ReplicatedStorage.GameData.LatestRoom.Changed:Connect(function()
+            if workspace.CurrentRooms[game.ReplicatedStorage.GameData.LatestRoom.Value].Door:FindFirstChild("Lock") then
+                print("YES KEY")
+           skelly()
+           else
+               print("no.")
+        end
+        end)
+    end
 })
 
+local time = Window:MakeTab({
+    Name = "Entity Timer",
+    Icon = "rbxassetid://11372950109",
+    PremiumOnly = false
+})
+
+time:AddParagraph("sorry guys", "so far only ordinary entities")
+
+time:AddButton({
+    Name = "Screech Every 15 Secs",
+    Callback = function ()
+    local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+while true do -- Will run the script forever
+  coroutine.wrap(function() require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.RemoteListener.Modules.Screech)(Data) end)() -- Coroutines prevent the script from yielding.
+task.wait(15) -- Waits somewhere around a millisecond before executing again. This is necessary so that the script won't crash your game. You can also add a time as such: task.wait(1) or task.wait(0.5)
+end
+
+end
+})
+
+time:AddButton({
+    Name = "Halt Every 15 Secs",
+    Callback = function ()
+        local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+        while true do -- Will run the script forever
+          coroutine.wrap(function() require(game.ReplicatedStorage.ClientModules.EntityModules.Glitch).stuff(Data, workspace.CurrentRooms[tostring(game.ReplicatedStorage.GameData.LatestRoom.Value)])          end)() -- Coroutines prevent the script from yielding.
+        task.wait(15) -- Waits somewhere around a millisecond before executing again. This is necessary so that the script won't crash your game. You can also add a time as such: task.wait(1) or task.wait(0.5)
+        end
+    end
+})
+
+time:AddButton({
+    Name = "Glitch Every 15 Secs",
+    Callback = function ()
+        local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+        while true do -- Will run the script forever
+          coroutine.wrap(function() require(game.ReplicatedStorage.ClientModules.EntityModules.Glitch).stuff(Data, workspace.CurrentRooms[tostring(game.ReplicatedStorage.GameData.LatestRoom.Value)]) end)() -- Coroutines prevent the script from yielding.
+        task.wait(15) -- Waits somewhere around a millisecond before executing again. This is necessary so that the script won't crash your game. You can also add a time as such: task.wait(1) or task.wait(0.5)
+        end
+    end
+})
+
+time:AddButton({
+    Name = "Heartbeat Minigame Every 15 Secs",
+    Callback = function ()
+        local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+        while true do -- Will run the script forever
+          coroutine.wrap(function() firesignal(game.ReplicatedStorage.Bricks.ClutchHeartbeat.OnClientEvent)  end)() -- Coroutines prevent the script from yielding.
+        task.wait(15) -- Waits somewhere around a millisecond before executing again. This is necessary so that the script won't crash your game. You can also add a time as such: task.wait(1) or task.wait(0.5)
+        end
+    end
+})
+
+time:AddButton({
+    Name = "Timothy Every 15 Secs",
+    Callback = function ()
+        local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+        while true do -- Will run the script forever
+          coroutine.wrap(function() local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+
+            require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game.RemoteListener.Modules.SpiderJumpscare)(Data.workspace.CurrentRooms[game.ReplicatedStorage.GameData.LatestRoom.Value].Assets:WaitForChild("Dresser").DrawerContainer, 0.2)  end)() -- Coroutines prevent the script from yielding.
+        task.wait(15) -- Waits somewhere around a millisecond before executing again. This is necessary so that the script won't crash your game. You can also add a time as such: task.wait(1) or task.wait(0.5)
+        end
+    end
+})
+
+time:AddParagraph("Bug", "it crashes when i click on spawn rush")
+
+time:AddButton({
+    Name = "Spawn Rush Every 15 Secs",
+    Callback = function ()
+        local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+        
+        while true do
+            coroutine.wrap(function() local Data = require(game.Players.LocalPlayer.PlayerGui.MainUI.Initiator.Main_Game)
+        
+        local Creator = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors%20Entity%20Spawner/Source.lua"))()
+
+        -- Create entity
+        local entity = Creator.createEntity({
+            CustomName = "Rush", -- Custom name of your entity
+            Model = "https://github.com/Johnny39871/assets/blob/main/Rush.rbxm?raw=true", -- Can be GitHub file or rbxassetid
+            Speed = 100, -- Percentage, 100 = default Rush speed
+            DelayTime = 2, -- Time before starting cycles (seconds)
+            HeightOffset = 0,
+            CanKill = false,
+            KillRange = 25,
+            BreakLights = true,
+            BackwardsMovement = false,
+            FlickerLights = {
+                true, -- Enabled/Disabled
+                1, -- Time (seconds)
+            },
+            Cycles = {
+                Min = 1,
+                Max = 1,
+                WaitTime = 2,
+            },
+            CamShake = {
+                true, -- Enabled/Disabled
+                {3.5, 20, 0.1, 1}, -- Shake values (don't change if you don't know)
+                100, -- Shake start distance (from Entity to you)
+            },
+            Jumpscare = {
+                true, -- Enabled/Disabled
+                {
+                    Image1 = "rbxassetid://10483855823", -- Image1 url
+                    Image2 = "rbxassetid://10483999903", -- Image2 url
+                    Shake = true,
+                    Sound1 = {
+                        10483790459, -- SoundId
+                        { Volume = 0.5 }, -- Sound properties
+                    },
+                    Sound2 = {
+                        10483837590, -- SoundId
+                        { Volume = 0.5 }, -- Sound properties
+                    },
+                    Flashing = {
+                        true, -- Enabled/Disabled
+                        Color3.fromRGB(0, 0, 255), -- Color
+                    },
+                    Tease = {
+                        true, -- Enabled/Disabled
+                        Min = 4,
+                        Max = 4,
+                    },
+                },
+            },
+            CustomDialog = {"You died to Rush...", "your balls look dry", "Can I put some lotion on them?"}, -- Custom death message
+        })
+        
+        -----[[ Advanced ]]-----
+        entity.Debug.OnEntitySpawned = function(entityTable)
+            print("Entity has spawned:", entityTable.Model)
+        end
+        
+        entity.Debug.OnEntityDespawned = function(entityTable)
+            print("Entity has despawned:", entityTable.Model)
+        end
+        
+        entity.Debug.OnEntityStartMoving = function(entityTable)
+            print("Entity has started moving:", entityTable.Model)
+        end
+        
+        entity.Debug.OnEntityFinishedRebound = function(entityTable)
+            print("Entity has finished rebound:", entityTable.Model)
+        end
+        
+        entity.Debug.OnEntityEnteredRoom = function(entityTable, room)
+            print("Entity:", entityTable.Model, "has entered room:", room)
+        end
+        
+        entity.Debug.OnLookAtEntity = function(entityTable)
+            print("Player has looked at entity:", entityTable.Model)
+        end
+        
+        entity.Debug.OnDeath = function(entityTable)
+            warn("Player has died.")
+        end
+        ------------------------
+        
+        -- Run the created entity
+        Creator.runEntity(entity) end)()
+        
+    end
+    end
+})
+
+
+local customTab = Window:MakeTab({
+    Name = "Custom Entites",
+    Icon = "rbxassetid://11372950109",
+    PremiumOnly = false
+})
+
+customTab:AddButton({
+    Name = "Spawn A-60", 
+    Callback = function ()
+        local Creator = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors%20Entity%20Spawner/Source.lua"))()
+
+-- Create entity
+local entity = Creator.createEntity({
+    CustomName = "A-60", -- Custom name of your entity
+    Model = "https://github.com/plamen6789/CustomDoorsMonsters/blob/main/A-60.rbxm?raw=true", -- Can be GitHub file or rbxassetid
+    Speed = 300, -- Percentage, 100 = default Rush speed
+    DelayTime = 1, -- Time before starting cycles (seconds)
+    HeightOffset = 0,
+    CanKill = false,
+    KillRange = 50,
+    BreakLights = false,
+    BackwardsMovement = false,
+    FlickerLights = {
+        true, -- Enabled/Disabled
+        2, -- Time (seconds)
+    },
+    Cycles = {
+        Min = 3,
+        Max = 3,
+        WaitTime = 5,
+    },
+    CamShake = {
+        true, -- Enabled/Disabled
+        {30, 30, 0.1, 1}, -- Shake values (don't change if you don't know)
+        50, -- Shake start distance (from Entity to you)
+    },
+    Jumpscare = {
+        false, -- Enabled/Disabled
+        {
+            Image1 = "rbxassetid://11394048190", -- Image1 url
+            Image2 = "rbxassetid://11394048190", -- Image2 url
+            Shake = true,
+            Sound1 = {
+                10483790459, -- SoundId
+                { Volume = 0.5 }, -- Sound properties
+            },
+            Sound2 = {
+                10483837590, -- SoundId
+                { Volume = 0.5 }, -- Sound properties
+            },
+            Flashing = {
+                true, -- Enabled/Disabled
+                Color3.fromRGB(255, 0, 0), -- Color
+            },
+            Tease = {
+                false, -- Enabled/Disabled
+                Min = 1,
+                Max = 1,
+            },
+        },
+    },
+    CustomDialog = {"You died to A-60", "It can Apear at any moment, a loud scream will anounce its presence", "When you hear it spawn you must stay out of its reach as soon as possible", "It knows exactly where you are so hiding in different places will not work.."}, -- Custom death message
+})
+
+-----[[ Advanced ]]-----
+entity.Debug.OnEntitySpawned = function(entityTable)
+    print("Entity has spawned:", entityTable.Model)
+end
+
+entity.Debug.OnEntityDespawned = function(entityTable)
+    print("Entity has despawned:", entityTable.Model)
+end
+
+entity.Debug.OnEntityStartMoving = function(entityTable)
+    print("Entity has started moving:", entityTable.Model)
+end
+
+entity.Debug.OnEntityFinishedRebound = function(entityTable)
+    print("Entity has finished rebound:", entityTable.Model)
+end
+
+entity.Debug.OnEntityEnteredRoom = function(entityTable, room)
+    print("Entity:", entityTable.Model, "has entered room:", room)
+end
+
+entity.Debug.OnLookAtEntity = function(entityTable)
+    print("Player has looked at entity:", entityTable.Model)
+end
+
+entity.Debug.OnDeath = function(entityTable)
+    warn("Player has died.")
+end
+------------------------
+
+-- Run the created entity
+Creator.runEntity(entity)
+
+    
+    
+    end
+    
+    
+    
+    })
+
+
+customTab:AddButton({
+    Name = "Spawn Firebrand",
+    Callback = function ()
+        local Creator = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors%20Entity%20Spawner/Source.lua"))()
+
+-- Create entity
+local entity = Creator.createEntity({
+    CustomName = "Firebrand", -- Custom name of your entity
+    Model = "https://github.com/fnaclol/sussy-bois/raw/main/FireBrand3.rbxm?raw=true", -- Can be GitHub file or rbxassetid
+    Speed = 400, -- Percentage, 100 = default Rush speed
+    DelayTime = 2, -- Time before starting cycles (seconds)
+    HeightOffset = 0,
+    CanKill = false,
+    KillRange = 50,
+    BreakLights = true,
+    BackwardsMovement = false,
+    FlickerLights = {
+        true, -- Enabled/Disabled
+        1, -- Time (seconds)
+    },
+    Cycles = {
+        Min = 2,
+        Max = 2,
+        WaitTime = 2,
+    },
+    CamShake = {
+        true, -- Enabled/Disabled
+        {5, 15, 0.1, 1}, -- Shake values (don't change if you don't know)
+        100, -- Shake start distance (from Entity to you)
+    },
+    Jumpscare = {
+        true, -- Enabled/Disabled
+        {
+            Image1 = "rbxassetid://10483855823", -- Image1 url
+            Image2 = "rbxassetid://10483999903", -- Image2 url
+            Shake = true,
+            Sound1 = {
+                10483790459, -- SoundId
+                { Volume = 0.5 }, -- Sound properties
+            },
+            Sound2 = {
+                10483837590, -- SoundId
+                { Volume = 0.5 }, -- Sound properties
+            },
+            Flashing = {
+                true, -- Enabled/Disabled
+                Color3.fromRGB(255, 255, 255), -- Color
+            },
+            Tease = {
+                true, -- Enabled/Disabled
+                Min = 1,
+                Max = 3,
+            },
+        },
+    },
+    CustomDialog = {"You died to whom you call FireBrand", "FireBrand will spawn only on your will", "When you hear him spawn you only have 2 seconds to hide", "Vents do not save you aswell"}, -- Custom death message
+})
+
+-----[[ Advanced ]]-----
+entity.Debug.OnEntitySpawned = function(entityTable)
+    print("Entity has spawned:", entityTable.Model)
+end
+
+entity.Debug.OnEntityDespawned = function(entityTable)
+    print("Entity has despawned:", entityTable.Model)
+end
+
+entity.Debug.OnEntityStartMoving = function(entityTable)
+    print("Entity has started moving:", entityTable.Model)
+end
+
+entity.Debug.OnEntityFinishedRebound = function(entityTable)
+    print("Entity has finished rebound:", entityTable.Model)
+end
+
+entity.Debug.OnEntityEnteredRoom = function(entityTable, room)
+    print("Entity:", entityTable.Model, "has entered room:", room)
+end
+
+entity.Debug.OnLookAtEntity = function(entityTable)
+    print("Player has looked at entity:", entityTable.Model)
+end
+
+entity.Debug.OnDeath = function(entityTable)
+    warn("Player has died.")
+end
+------------------------
+
+-- Run the created entity
+Creator.runEntity(entity)
+
+        
+    end
+})
+
+
+customTab:AddButton({
+    Name = "Spawn Rebound",
+    Callback = function ()
+        local Creator = loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularVynixu/Utilities/main/Doors%20Entity%20Spawner/Source.lua"))()
+
+        -- Create entity
+        local entity = Creator.createEntity({
+            CustomName = "Rebound", -- Custom name of your entity
+            Model = "rbxassetid://11401769490", -- Can be GitHub file or rbxassetid
+            Speed = 300, -- Percentage, 100 = default Rush speed
+            DelayTime = 3, -- Time before starting cycles (seconds)
+            HeightOffset = 0,
+            CanKill = false,
+            KillRange = 50,
+            BreakLights = false,
+            BackwardsMovement = false,
+            FlickerLights = {
+                true, -- Enabled/Disabled
+                2.5, -- Time (seconds)
+            },
+            Cycles = {
+                Min = 1,
+                Max = 6,
+                WaitTime = 7,
+            },
+            CamShake = {
+                true, -- Enabled/Disabled
+                {5, 15, 0.1, 1}, -- Shake values (don't change if you don't know)
+                100, -- Shake start distance (from Entity to you)
+            },
+            Jumpscare = {
+                false, -- Enabled/Disabled
+                {
+                    Image1 = "rbxassetid://11372489796", -- Image1 url
+                    Image2 = "rbxassetid://11372489796", -- Image2 url
+                    Shake = true,
+                    Sound1 = {
+                        10483790459, -- SoundId
+                        { Volume = 0.5 }, -- Sound properties
+                    },
+                    Sound2 = {
+                        10483837590, -- SoundId
+                        { Volume = 0.5 }, -- Sound properties
+  
